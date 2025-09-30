@@ -25,6 +25,18 @@
     #tree {
       flex: 1;
     }
+    /* Tooltip styling */
+    #tooltip {
+      position: absolute;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      pointer-events: none;
+      display: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
@@ -35,27 +47,37 @@
   <!-- Tree container -->
   <div id="tree"></div>
 
+  <!-- Tooltip element -->
+  <div id="tooltip"></div>
+
   <script>
-    // Example Newick string — replace with your own file or tree string
-    js
-    
-    fetch("tree.newick")
-      .then(res => res.text())
-      .then(text => tree.load(text));
-
-
     // Initialize tree
     const tree = new PhyloCanvas.Tree('#tree', {
-      source: newick,   // or use a file path like "tree.newick"
       config: {
         type: 'circular',   // options: "rectangular", "diagonal", "radial", "circular"
         showLabels: true,
       },
     });
 
-    // Example: add interactivity
-    tree.on('nodeclick', node => {
-      alert(`You clicked on node: ${node.id}`);
+    // Load external Newick file
+    fetch("tree.newick")
+      .then(res => res.text())
+      .then(text => tree.load(text));
+
+    // Tooltip logic
+    const tooltip = document.getElementById("tooltip");
+
+    tree.on('nodedraw', (node, event) => {
+      // Attach mouseover/mouseout handlers for tooltip
+      node.element.addEventListener("mousemove", e => {
+        tooltip.style.display = "block";
+        tooltip.style.left = (e.pageX + 10) + "px";
+        tooltip.style.top = (e.pageY + 10) + "px";
+        tooltip.innerHTML = `Node ID: ${node.id}`;
+      });
+      node.element.addEventListener("mouseout", () => {
+        tooltip.style.display = "none";
+      });
     });
   </script>
 </body>
