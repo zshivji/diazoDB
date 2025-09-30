@@ -28,7 +28,7 @@
     /* Tooltip styling */
     #tooltip {
       position: absolute;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.85);
       color: white;
       padding: 5px 8px;
       border-radius: 4px;
@@ -51,34 +51,35 @@
   <div id="tooltip"></div>
 
   <script>
-    // Initialize tree
+    // Create empty tree
     const tree = new PhyloCanvas.Tree('#tree', {
       config: {
-        type: 'circular',   // options: "rectangular", "diagonal", "radial", "circular"
-        showLabels: true,
-      },
+        type: 'circular',
+        showLabels: true
+      }
     });
 
-    // Load external Newick file
+    // Load Newick file
     fetch("tree.newick")
       .then(res => res.text())
-      .then(text => tree.load(text));
+      .then(newick => {
+        tree.load(newick);
 
-    // Tooltip logic
-    const tooltip = document.getElementById("tooltip");
-
-    tree.on('nodedraw', (node, event) => {
-      // Attach mouseover/mouseout handlers for tooltip
-      node.element.addEventListener("mousemove", e => {
-        tooltip.style.display = "block";
-        tooltip.style.left = (e.pageX + 10) + "px";
-        tooltip.style.top = (e.pageY + 10) + "px";
-        tooltip.innerHTML = `Node ID: ${node.id}`;
+        // Add hover tooltips
+        const tooltip = document.getElementById("tooltip");
+        tree.on('nodedraw', (node, coords) => {
+          node.canvas.addEventListener("mousemove", e => {
+            if (tree.isPointInNode(node, e.offsetX, e.offsetY)) {
+              tooltip.style.display = "block";
+              tooltip.style.left = (e.pageX + 10) + "px";
+              tooltip.style.top = (e.pageY + 10) + "px";
+              tooltip.innerHTML = `Node ID: ${node.id}`;
+            } else {
+              tooltip.style.display = "none";
+            }
+          });
+        });
       });
-      node.element.addEventListener("mouseout", () => {
-        tooltip.style.display = "none";
-      });
-    });
   </script>
 </body>
 </html>
