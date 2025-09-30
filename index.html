@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Tree Example</title>
+
+  <!-- Load PhyloCanvas from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/phylocanvas@latest/dist/phylocanvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 10px;
+      background: #2c3e50;
+      color: white;
+    }
+    #tree {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>My Interactive Phylogenetic Tree</h2>
+  </header>
+
+  <!-- Tree container -->
+  <div id="tree"></div>
+
+  <script>
+    // Example Newick string — replace with your own file or tree string
+    const newick = "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);";
+
+    // Initialize tree
+    const tree = new PhyloCanvas.Tree('#tree', {
+      source: newick,   // or use a file path like "tree.newick"
+      config: {
+        type: 'circular',   // options: "rectangular", "diagonal", "radial", "circular"
+        showLabels: true,
+      },
+    });
+
+    // Example: add interactivity
+    tree.on('nodeclick', node => {
+      alert(`You clicked on node: ${node.id}`);
+    });
+  </script>
+</body>
+</html>
