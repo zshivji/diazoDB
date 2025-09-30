@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Tree Example</title>
+  <title>Interactive Tree with Metadata</title>
 
-  <!-- Load PhyloCanvas from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/phylocanvas@latest/dist/phylocanvas.min.js"></script>
+  <!-- Load PhyloCanvas Plugin (working build) -->
+  <link rel="stylesheet" href="https://unpkg.com/phylocanvas-plugin/dist/phylocanvas.css" />
+  <script src="https://unpkg.com/phylocanvas-plugin/dist/phylocanvas.min.js"></script>
 
   <style>
     body {
@@ -41,45 +42,54 @@
 </head>
 <body>
   <header>
-    <h2>My Interactive Phylogenetic Tree</h2>
+    <h2>My Interactive Phylogenetic Tree with Metadata</h2>
   </header>
 
   <!-- Tree container -->
   <div id="tree"></div>
-
-  <!-- Tooltip element -->
   <div id="tooltip"></div>
 
   <script>
-    // Create empty tree
-    const tree = new PhyloCanvas.Tree('#tree', {
-      config: {
+    let metadata = {};
+
+    // Load metadata, then tree
+    Promise.all([
+      fetch("metadata.json").then(r => r.json()),
+      fetch("tree.newick").then(r => r.text())
+    ]).then(([meta, newick]) => {
+      metadata = meta;
+
+      // Create the tree
+      const tree = PhyloCanvas.createTree('tree', {
         type: 'circular',
         showLabels: true
-      }
-    });
-
-    // Load Newick file
-    fetch("tree.newick")
-      .then(res => res.text())
-      .then(newick => {
-        tree.load(newick);
-
-        // Add hover tooltips
-        const tooltip = document.getElementById("tooltip");
-        tree.on('nodedraw', (node, coords) => {
-          node.canvas.addEventListener("mousemove", e => {
-            if (tree.isPointInNode(node, e.offsetX, e.offsetY)) {
-              tooltip.style.display = "block";
-              tooltip.style.left = (e.pageX + 10) + "px";
-              tooltip.style.top = (e.pageY + 10) + "px";
-              tooltip.innerHTML = `Node ID: ${node.id}`;
-            } else {
-              tooltip.style.display = "none";
-            }
-          });
-        });
       });
+      tree.load(newick);
+
+      const tooltip = document.getElementById("tooltip");
+
+      // Attach hover tooltips
+      tree.on('mouseover', node => {
+        if (!node.id) return; // skip internal nodes without IDs
+
+        let content = `<b>Node ID:</b> ${node.id}`;
+        if (metadata[node.id]) {
+          content += `<br><b>Species:</b> ${metadata[node.id].species}`;
+          content += `<br><b>Phenotype:</b> ${metadata[node.id].phenotype}`;
+        }
+        tooltip.innerHTML = content;
+        tooltip.style.display = "block";
+      });
+
+      tree.on('mousemove', (node, event) => {
+        tooltip.style.left = (event.clientX + 10) + "px";
+        tooltip.style.top = (event.clientY + 10) + "px";
+      });
+
+      tree.on('mouseout', () => {
+        tooltip.style.display = "none";
+      });
+    });
   </script>
 </body>
 </html>
